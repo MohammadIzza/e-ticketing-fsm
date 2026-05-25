@@ -241,7 +241,7 @@ export default async function handler(req: any, res: any) {
     })
     if (linkError) throw linkError
 
-    const callbackUrl = `/sso-redirect?link=${encodeURIComponent(linkData.properties.action_link)}`
+    const callbackUrl = `/sso-redirect?token_hash=${encodeURIComponent(linkData.properties.hashed_token)}`
     return res.status(200).json({ callback_url: callbackUrl })
   } catch (err: any) {
     const detail = err?.message ?? String(err)

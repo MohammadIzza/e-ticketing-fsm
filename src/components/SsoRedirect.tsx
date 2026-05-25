@@ -1,41 +1,36 @@
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
-
-const SUPABASE_HOST = new URL(
-  import.meta.env.VITE_SUPABASE_URL ?? "https://placeholder.supabase.co",
-).hostname;
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { supabase } from "../lib/supabase";
 
 /**
  * Halaman perantara setelah SSO UNDIP mengarahkan user ke app.
- * Menerima action_link dari Vercel API /api/auth/sso, memvalidasi
- * bahwa link mengarah ke Supabase kita (cegah open redirect), lalu
- * redirect ke sana sehingga Supabase membuat session dan mengirim
- * user ke /dashboard.
+ * Menerima token_hash dari /api/auth/sso, memanggil verifyOtp
+ * secara langsung agar kompatibel dengan flowType: 'pkce' (tidak
+ * memerlukan code_verifier karena sesi dikembalikan langsung via API).
  */
 export default function SsoRedirect() {
   const [params] = useSearchParams();
   const [error, setError] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const link = params.get("link");
-    if (!link) {
+    const tokenHash = params.get("token_hash");
+    if (!tokenHash) {
       setError(true);
       return;
     }
 
-    try {
-      const url = new URL(link);
-      if (url.hostname !== SUPABASE_HOST) {
-        setError(true);
-        return;
-      }
-    } catch {
-      setError(true);
-      return;
-    }
-
-    window.location.replace(link);
-  }, [params]);
+    supabase.auth
+      .verifyOtp({ token_hash: tokenHash, type: "magiclink" })
+      .then(({ error: err }) => {
+        if (err) {
+          console.error("[sso-redirect] verifyOtp error:", err.message);
+          setError(true);
+        } else {
+          navigate("/dashboard", { replace: true });
+        }
+      });
+  }, [params, navigate]);
 
   if (error) {
     return (
