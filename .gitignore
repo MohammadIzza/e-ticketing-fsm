@@ -1,0 +1,29 @@
+node_modules
+dist
+dist-ssr
+*.local
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# env (real values)
+.env
+.env.*
+# but allow tracked example files
+!.env.example
+!.env.admin.local.example
+
+# editor
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+
+# pwa generated
+dev-dist
+
+# typescript build info
+*.tsbuildinfo
