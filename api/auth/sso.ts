@@ -226,12 +226,11 @@ export default async function handler(req: any, res: any) {
     // Auto-assign jenis pelapor berdasarkan domain email Undip.
     // Idempotent — dijalankan setiap login SSO untuk back-fill akun
     // lama yang masih NULL. Tidak menimpa pengaturan manual admin.
+    // Fire-and-forget: tidak ditunggu agar generateLink bisa langsung jalan
     if (userId) {
-      try {
-        await syncReporterTypeForUser(supabase, userId, email)
-      } catch (e) {
+      syncReporterTypeForUser(supabase, userId, email).catch((e) =>
         console.warn('[sso] syncReporterTypeForUser non-fatal:', (e as any)?.message ?? e)
-      }
+      )
     }
 
     const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
